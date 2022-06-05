@@ -16,16 +16,23 @@ def get_search_request():
                      ' a comma. (ex. Detroit, Michigan, 48127): ')
     return search_item, location
 
+# url_generator will take the outputs of get_search_request and use them to generate a url that can then be used
+# by requests.get
 def url_generator(search_item, location):
     base_url = 'https://www.yelp.com/search?'
     search_item = search_item.replace(' ', '+')
-    url = base_url + 'find_desc=' + search_item
     location = location.replace(' ', '+').replace(',', '%2C')
-    url += '&find_loc=' + location
+    url = base_url + 'find_desc=' + search_item + '&find_loc=' + location
     return url
 
 
 search, loc = get_search_request()
 yelp_page = requests.get(url_generator(search, loc))
 yelp_soup = BeautifulSoup(yelp_page.content, 'html.parser')
-print(yelp_soup.prettify())
+
+test = yelp_soup.find_all('a')
+links = []
+for a in test:
+    links.append(a["href"])
+
+print(links)
