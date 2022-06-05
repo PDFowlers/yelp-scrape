@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from time import sleep
+import os
 
 
 # this project is aimed at searching yelp for various good and services and providing a "top 5" list of
@@ -23,16 +24,30 @@ def url_generator(search_item, location):
     search_item = search_item.replace(' ', '+')
     location = location.replace(' ', '+').replace(',', '%2C')
     url = base_url + 'find_desc=' + search_item + '&find_loc=' + location
-    return url
+    file_name = search_item + location
+    return url, file_name
+
+# local_cache_check will take the search request url and check a local directory for a file of the same name
+# if the file is found then it will use that file instead of scraping the internet
+def local_cache_check(url, file_name):
+    # url_hash = hash(url)
+    path = input('Please enter complete filepath to search: ')
+    file_list = os.listdir(path)
+    file_name = file_name + '.html'
+    file_path = os.path.join(path, file_name)
+    if file_name in file_list:
+        print('Retrieving the file from the directory')
+        with open(file_path, 'r') as file:
+            yelp_soup = file.read()
+    else:
+        print('Writing new file in the directory')
+        yelp_page = requests.get(url)
+        yelp_soup = BeautifulSoup(yelp_page.content, 'html.parser')
+        with open(file_path, 'w') as file:
+            file.write(yelp_soup.prettify())
+    return yelp_soup
 
 
-search, loc = get_search_request()
-yelp_page = requests.get(url_generator(search, loc))
-yelp_soup = BeautifulSoup(yelp_page.content, 'html.parser')
+yelp_soup = local_cache_check(*url_generator(*get_search_request()))
 
-test = yelp_soup.find_all('a')
-links = []
-for a in test:
-    links.append(a["href"])
-
-print(links)
+print(yelp_soup)
