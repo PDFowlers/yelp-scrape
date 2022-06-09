@@ -28,25 +28,25 @@ def cli():
 @click.command()
 @click.argument('search_item')
 @click.argument('location')
+@click.argument('file_path', type = click.Path(exists=True))
 def url_generator(search_item: str, location: str) ->str:
     base_url = 'https://www.yelp.com/search?'
     search_item = str(search_item).replace(' ', '+')
     location = str(location).replace(' ', '+').replace(',', '%2C')
     url = base_url + 'find_desc=' + search_item + '&find_loc=' + location
     file_name = search_item + location + '.html'
-    return url, file_name
+    return local_cache_check(url, file_name, file_path)
 
 # local_cache_check will take the search request url and check a local directory for a file of the same name
 # if the file is found then it will use that file instead of scraping the internet
 @click.command()
-@click.argument('file_name', type = click.Path(exists=True))
-def local_cache_check(url: str, file_name: str | Path) -> BeautifulSoup:
+# @click.argument('file_path', type = click.Path(exists=True))
+def local_cache_check(url: str, file_name: str, file_path: Path) -> BeautifulSoup:
     # url_hash = hash(url)
     # path = input('Please enter complete filepath to search: ')
     print('check')
-    path = file_name
-    file_list = os.listdir(f'{path}')
-    file_path = os.path.join(path, file_name)
+    file_list = os.listdir(f'{file_path}')
+    file_path = os.path.join(file_path, file_name)
     if file_name in file_list:
         print('Retrieving the file from the directory')
         with open(file_path, 'r') as file:
@@ -58,10 +58,6 @@ def local_cache_check(url: str, file_name: str | Path) -> BeautifulSoup:
         with open(file_path, 'w') as file:
             file.write(yelp_soup)
     return yelp_soup
-
-
-
-
 
 
 cli.add_command(url_generator)
