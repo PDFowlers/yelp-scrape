@@ -45,7 +45,8 @@ def local_cache_check(url: str, file_name: str, cache: Path) -> BeautifulSoup:
     if file_name in file_list:
         print('Retrieving the file from the directory')
         with open(cache, 'r') as file:
-            yelp_soup = file.read()
+            cached_text = file.read()
+            yelp_soup = BeautifulSoup(cached_text, 'html.parser')
     else:
         print('Writing new file in the directory')
         yelp_page = requests.get(url)
@@ -60,7 +61,8 @@ def collect_webpages(soup: BeautifulSoup) -> list:
     :param BeautifulSoup soup: The BeautifulSoup html link to the search page resulting from the query in url_generator()
     '''
     for a in soup.find_all('a'):
-        print(a['href'])
+        if 'href' in a.attrs:
+            print("do something")
 
 
 
