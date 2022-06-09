@@ -110,10 +110,48 @@ Okay, looks like I ran into the error I was telling you about a few comments ago
 
 Indeed, we're writing a BeautifulSoup object, which doesn't work.
 
-Hm... it looks like we're reusing yelp_soup. It contains BOTH the HTML text after the response, and then later it contains the parsed BeautifulSoup object. This is pretty confusing, since whether `yelp_soup` is a `str` or a `BeautifulSoup` depends on when we access it, and we also lose access to the original `str` response. Let's separate this into two variables, `response_text`, and `response_soup`.
+We can change line 54 to write the original `response.content`, which is a `str`.
 
-Once that's done, we can write `response_text` (the original string) to the file, instead of the BeautifulSoup object.
-
-And we're ready to run again.
+Let's try again.
 
 ## Output
+
+```
+Retrieving the file from the directory
+```
+
+## -----
+
+Ah. I forgot to delete the empty cache file that was written because it opened the file, then died before writing anything. So now we're opening an empty file, which means nothing is going to happen. I'll just delete the cache file and try again.
+
+## Output
+
+```
+Writing new file in the directory
+Traceback (most recent call last):
+  File "C:\Users\riiza\AppData\Local\Programs\Python\Python310\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Users\riiza\AppData\Local\Programs\Python\Python310\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "D:\Dev\yelp-scrape\yelp_scrape.py", line 86, in <module>
+    cli()
+  File "C:\Users\riiza\.virtualenvs\yelp-scrape-rBWDAnfj\lib\site-packages\click\core.py", line 1130, in __call__
+    return self.main(*args, **kwargs)
+  File "C:\Users\riiza\.virtualenvs\yelp-scrape-rBWDAnfj\lib\site-packages\click\core.py", line 1055, in main
+    rv = self.invoke(ctx)
+  File "C:\Users\riiza\.virtualenvs\yelp-scrape-rBWDAnfj\lib\site-packages\click\core.py", line 1657, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "C:\Users\riiza\.virtualenvs\yelp-scrape-rBWDAnfj\lib\site-packages\click\core.py", line 1404, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "C:\Users\riiza\.virtualenvs\yelp-scrape-rBWDAnfj\lib\site-packages\click\core.py", line 760, in invoke
+    return __callback(*args, **kwargs)
+  File "D:\Dev\yelp-scrape\yelp_scrape.py", line 79, in yelp_scrape
+    yelp_soup: BeautifulSoup | str = local_cache_check(url, file_name, cache)
+  File "D:\Dev\yelp-scrape\yelp_scrape.py", line 54, in local_cache_check
+    file.write(yelp_page.content)
+TypeError: write() argument must be str, not bytes
+```
+
+## -----
+
+My bad, `.content` gives a byte stream, we actually want `.text` which gives the `str`. I'll go ahead and make that fix, and delete the cache file again and rerun.
