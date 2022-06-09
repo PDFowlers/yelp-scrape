@@ -76,9 +76,9 @@ def yelp_scrape(search_item: str, location: str, cache: Path):
     :param Path cache: location of directory storing the local cache
     '''
     url, file_name = url_generator(search_item, location)
-    yelp_soup: BeautifulSoup | str = local_cache_check(url, file_name, cache)
-    yelp_soup: BeautifulSoup = BeautifulSoup(yelp_soup, 'html.parser')
-    pages: list = collect_webpages(yelp_soup)
+    response_text: str = local_cache_check(url, file_name, cache)
+    response_soup: BeautifulSoup = BeautifulSoup(response_text, 'html.parser')
+    pages: list = collect_webpages(response_text)
 
 cli.add_command(yelp_scrape)
 

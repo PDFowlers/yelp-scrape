@@ -111,3 +111,9 @@ Okay, looks like I ran into the error I was telling you about a few comments ago
 Indeed, we're writing a BeautifulSoup object, which doesn't work.
 
 Hm... it looks like we're reusing yelp_soup. It contains BOTH the HTML text after the response, and then later it contains the parsed BeautifulSoup object. This is pretty confusing, since whether `yelp_soup` is a `str` or a `BeautifulSoup` depends on when we access it, and we also lose access to the original `str` response. Let's separate this into two variables, `response_text`, and `response_soup`.
+
+Once that's done, we can write `response_text` (the original string) to the file, instead of the BeautifulSoup object.
+
+And we're ready to run again.
+
+## Output
