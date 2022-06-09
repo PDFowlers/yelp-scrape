@@ -5,6 +5,7 @@ from time import sleep
 import os
 from pathlib import Path
 import click
+import os
 
 # this project is aimed at searching yelp for various good and services and providing a "top 5" list of
 # recommendations to the user
@@ -14,7 +15,7 @@ import click
 @click.group()
 def cli():
     pass
-    
+
 def url_generator(search_item: str, location: str) ->str:
     '''
     generate a url and file_name for use in the local_cache_check function
@@ -38,6 +39,7 @@ def local_cache_check(url: str, file_name: str, cache: Path) -> BeautifulSoup:
     :param str file_name: name of the .html file stored in the local cache
     :param Path cache: location of directory storing the local cache
     '''
+    cache.mkdir(exist_ok=True, parents=True)
     file_list = os.listdir(f'{cache}')
     cache = os.path.join(cache, file_name)
     if file_name in file_list:
