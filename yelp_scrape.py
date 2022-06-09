@@ -14,7 +14,7 @@ import click
 @click.group()
 def cli():
     pass
-    
+
 def url_generator(search_item: str, location: str) ->str:
     '''
     generate a url and file_name for use in the local_cache_check function
@@ -38,18 +38,20 @@ def local_cache_check(url: str, file_name: str, cache: Path) -> BeautifulSoup:
     :param str file_name: name of the .html file stored in the local cache
     :param Path cache: location of directory storing the local cache
     '''
+    cache.mkdir(exist_ok=True, parents=True)
     file_list = os.listdir(f'{cache}')
     cache = os.path.join(cache, file_name)
     if file_name in file_list:
         print('Retrieving the file from the directory')
         with open(cache, 'r') as file:
-            yelp_soup = file.read()
+            cached_text = file.read()
+            yelp_soup = BeautifulSoup(cached_text, 'html.parser')
     else:
         print('Writing new file in the directory')
         yelp_page = requests.get(url)
-        yelp_soup = BeautifulSoup(yelp_page.content, 'html.parser')
+        yelp_soup = BeautifulSoup(yelp_page.text, 'html.parser')
         with open(cache, 'w') as file:
-            file.write(yelp_soup)
+            file.write(yelp_page.text)
     return yelp_soup
 
 def collect_webpages(soup: BeautifulSoup) -> list:
@@ -58,7 +60,8 @@ def collect_webpages(soup: BeautifulSoup) -> list:
     :param BeautifulSoup soup: The BeautifulSoup html link to the search page resulting from the query in url_generator()
     '''
     for a in soup.find_all('a'):
-        print(a['href'])
+        if 'href' in a.attrs:
+            print("do something")
 
 
 
@@ -74,8 +77,7 @@ def yelp_scrape(search_item: str, location: str, cache: Path):
     :param Path cache: location of directory storing the local cache
     '''
     url, file_name = url_generator(search_item, location)
-    yelp_soup: BeautifulSoup | str = local_cache_check(url, file_name, cache)
-    yelp_soup: BeautifulSoup = BeautifulSoup(yelp_soup, 'html.parser')
+    yelp_soup: BeautifulSoup = local_cache_check(url, file_name, cache)
     pages: list = collect_webpages(yelp_soup)
 
 cli.add_command(yelp_scrape)
