@@ -155,3 +155,55 @@ TypeError: write() argument must be str, not bytes
 ## -----
 
 My bad, `.content` gives a byte stream, we actually want `.text` which gives the `str`. I'll go ahead and make that fix, and delete the cache file again and rerun.
+
+## Output
+
+```
+Writing new file in the directory
+Traceback (most recent call last):
+  File "C:\Users\riiza\AppData\Local\Programs\Python\Python310\lib\runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "C:\Users\riiza\AppData\Local\Programs\Python\Python310\lib\runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "D:\Dev\yelp-scrape\yelp_scrape.py", line 86, in <module>
+    cli()
+  File "C:\Users\riiza\.virtualenvs\yelp-scrape-rBWDAnfj\lib\site-packages\click\core.py", line 1130, in __call__
+    return self.main(*args, **kwargs)
+  File "C:\Users\riiza\.virtualenvs\yelp-scrape-rBWDAnfj\lib\site-packages\click\core.py", line 1055, in main
+    rv = self.invoke(ctx)
+  File "C:\Users\riiza\.virtualenvs\yelp-scrape-rBWDAnfj\lib\site-packages\click\core.py", line 1657, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+  File "C:\Users\riiza\.virtualenvs\yelp-scrape-rBWDAnfj\lib\site-packages\click\core.py", line 1404, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+  File "C:\Users\riiza\.virtualenvs\yelp-scrape-rBWDAnfj\lib\site-packages\click\core.py", line 760, in invoke
+    return __callback(*args, **kwargs)
+  File "D:\Dev\yelp-scrape\yelp_scrape.py", line 80, in yelp_scrape
+    yelp_soup: BeautifulSoup = BeautifulSoup(yelp_soup, 'html.parser')
+  File "C:\Users\riiza\.virtualenvs\yelp-scrape-rBWDAnfj\lib\site-packages\bs4\__init__.py", line 312, in __init__
+    markup = markup.read()
+TypeError: 'NoneType' object is not callable
+```
+
+## -----
+
+Okay, `yelp_soup` is `None`. Why?
+
+We got it from the `local_cache_check` function, so let's see what's going on there.
+
+The output confirms we hit the branch where there was no cache file, so we write the cache.
+
+Then we return the `yelp_soup` object. Everything looks good to my eye in this function, so it looks like `BeautifulSoup(yelp_page.content, 'html.parser')` is returning `None`.
+
+I think it's the same bug as earlier, we're giving it `yelp_page.content` (which is `bytes`) rather than `yelp_page.text` (which is `str`). I'd expect this to error, but for some reason it fails silently. Thanks, Python, dope feature.
+
+Let's change it to `yelp_page.text` and see what happens. I also want to get rid of the cached page because we want to trigger this same branch again, we don't want to trigger the branch that reads from the cache file, since that behavior is different.
+
+## Output
+
+Well, I was wrong. I guess BeautifulSoup can read bytes just fine. I was looking in the wrong place. I just glossed over the line in the error that said `File "D:\Dev\yelp-scrape\yelp_scrape.py", line 80, in yelp_scrape`.
+
+So let's look at the line that actually generated the error in the first place.
+
+I see, we return a BeautifulSoup object from `local_cache_check`, then we try to parse it again, which doesn't work. Let's just remove that code and assume `local_cache_check` returns a `BeautifulSoup` object (because for this branch at least, it does).
+
+I'll delete the cached file and run once again.
