@@ -5,7 +5,6 @@ from time import sleep
 import os
 from pathlib import Path
 import click
-import os
 
 # this project is aimed at searching yelp for various good and services and providing a "top 5" list of
 # recommendations to the user
