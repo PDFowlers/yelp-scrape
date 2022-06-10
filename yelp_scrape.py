@@ -63,9 +63,9 @@ def collect_webpages(soup: BeautifulSoup, search_item: str) -> set:
     biz_lst: list = []
     for a in soup.find_all('a'):
         if 'href' in a.attrs:
-            if a.attrs['href'].split('?')[-1] == 'osq=' + search_item:
+            if a.attrs['href'].split('?')[-1] == 'osq=' + search_item and a.attrs['href'] not in biz_lst:
                 biz_lst.append(a.attrs['href'])
-    return set(biz_lst)
+    return biz_lst
 
 
 
