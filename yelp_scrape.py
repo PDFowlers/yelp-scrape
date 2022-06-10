@@ -54,14 +54,18 @@ def local_cache_check(url: str, file_name: str, cache: Path) -> BeautifulSoup:
             file.write(yelp_page.text)
     return yelp_soup
 
-def collect_webpages(soup: BeautifulSoup) -> list:
+def collect_webpages(soup: BeautifulSoup, search_item: str) -> set:
     '''
     scan through the search page and collect links to the top recommendations so the relevant info can be extracted
     :param BeautifulSoup soup: The BeautifulSoup html link to the search page resulting from the query in url_generator()
     '''
+    search_item = str(search_item).replace(' ', '+')
+    biz_lst: list = []
     for a in soup.find_all('a'):
         if 'href' in a.attrs:
-            print("do something")
+            if a.attrs['href'].split('?')[-1] == 'osq=' + search_item:
+                biz_lst.append(a.attrs['href'])
+    return set(biz_lst)
 
 
 
@@ -78,7 +82,8 @@ def yelp_scrape(search_item: str, location: str, cache: Path):
     '''
     url, file_name = url_generator(search_item, location)
     yelp_soup: BeautifulSoup = local_cache_check(url, file_name, cache)
-    pages: list = collect_webpages(yelp_soup)
+    pages: set = collect_webpages(yelp_soup, search_item)
+    print(pages)
 
 cli.add_command(yelp_scrape)
 
