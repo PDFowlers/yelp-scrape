@@ -65,7 +65,25 @@ def collect_webpages(soup: BeautifulSoup, search_item: str) -> set:
         if 'href' in a.attrs:
             if a.attrs['href'].split('?')[-1] == 'osq=' + search_item and a.attrs['href'] not in biz_lst:
                 biz_lst.append(a.attrs['href'])
+        if len(biz_lst) >= 5:
+            break
     return biz_lst
+
+def page_info_grab(pages: list) -> dict:
+    '''
+    iterate through the top search results obtained from "collect_webpages()" and pull relevant data to place into reccommndation info
+    :param list pages: list of urls of the top 5 search results from yelp
+    '''
+    reccommendation_info = {}
+    base_url = 'https://yelp.com'
+    for page in pages:
+        page_attributes = []
+        url = base_url + page
+        page_req = requests.get(url)
+        page_soup = BeautifulSoup(page_req.text, 'html.parser')
+        title = page_soup.h1.text
+        
+
 
 
 
@@ -83,7 +101,9 @@ def yelp_scrape(search_item: str, location: str, cache: Path):
     url, file_name = url_generator(search_item, location)
     yelp_soup: BeautifulSoup = local_cache_check(url, file_name, cache)
     pages: set = collect_webpages(yelp_soup, search_item)
-    print(pages)
+    for page in pages:
+        print(page + '\n')
+    reccommendation_info = page_info_grab(pages)
 
 cli.add_command(yelp_scrape)
 
