@@ -77,11 +77,18 @@ def page_info_grab(pages: list) -> dict:
     reccommendation_info = {}
     base_url = 'https://yelp.com'
     for page in pages:
-        page_attributes = []
+        sleep(1)
+        page_attributes = {}
         url = base_url + page
         page_req = requests.get(url)
         page_soup = BeautifulSoup(page_req.text, 'html.parser')
         title = page_soup.h1.text
+        for label in page_soup.find_all('div'):   
+            if label.get('aria-label') is not None:
+                page_attributes['Rating'] = label['aria-label']
+                break
+        reccommendation_info[title] = page_attributes
+    print(reccommendation_info)
         
 
 
