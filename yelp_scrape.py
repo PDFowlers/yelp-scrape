@@ -98,10 +98,6 @@ def page_info_grab(pages: list) -> dict:
         reccommendation_info[title] = page_attributes
     return reccommendation_info
         
-
-
-
-
 @click.command()
 @click.option('--cache', '-c', default = Path("./WebCache/"), type = click.Path(exists=False), help = "When provided, changes the location of the cache.")
 @click.argument('search_item')
