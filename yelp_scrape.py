@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import click
 import re
+from dataclasses import dataclass, asdict
 
 # this project is aimed at searching yelp for various good and services and providing a "top 5" list of
 # recommendations to the user
@@ -15,6 +16,22 @@ import re
 @click.group()
 def cli():
     pass
+
+@dataclass (frozen=True)
+class DetailedInfo:
+    '''class to store detailed yelp result info'''
+    rating: str     #business rating based on a 5 star scale
+    website: str    #specific business webpage
+    phone_number: str       #business phone number. stored as (123) 456-7890
+    address: str    #address for the business
+
+# @dataclass (frozen=True)
+# class YelpInfo:
+#     '''class to store each business and associated DetailedInfo'''
+#     name: str   #name of business
+#     DetailedInfo: dict[DetailedInfo]      #list dataclass that stores detailed business info
+
+
 
 def url_generator(search_item: str, location: str) ->str:
     '''
@@ -72,29 +89,30 @@ def collect_webpages(soup: BeautifulSoup, search_item: str) -> set:
 
 def page_info_grab(pages: list) -> dict:
     '''
-    iterate through the top search results obtained from "collect_webpages()" and pull relevant data to place into reccommndation info
-    :param list pages: list of urls of the top 5 search results from yelp
+    iterate through the pages list and pull relevant data from the associated yelp pages to place into reccommndation info
+    :param list pages: list of urls from yelp
     '''
-    reccommendation_info = {}
     base_url = 'https://yelp.com'
+    reccommendation_info = {}
     for page in pages:
         sleep(1)
-        page_attributes = {}
         url = base_url + page
         page_req = requests.get(url)
         page_soup = BeautifulSoup(page_req.text, 'html.parser')
         title = page_soup.h1.text
         for label in page_soup.find_all('div'):   
             if label.get('aria-label') is not None:
-                page_attributes['Rating'] = label['aria-label']
+                rating = label['aria-label']
                 break
         for a in page_soup.find_all('a'):
             if a.string is not None and a.string.startswith('http'):
-                page_attributes['Website'] = a.string
+                website = a.string
         for p in page_soup.find_all('p', class_='css-1p9ibgf'):
             if re.search('\(\d{3}\)', p.text) is not None:
-                page_attributes['Phone Number'] = p.text
-        page_attributes['Address'] = page_soup.find('p', class_='css-qyp8bo').text
+                phone_number = p.text
+        address = page_soup.find('p', class_='css-qyp8bo').text
+        page_attributes = DetailedInfo(rating, website, phone_number, address)
+        page_attributes = asdict(page_attributes)
         reccommendation_info[title] = page_attributes
     return reccommendation_info
         
