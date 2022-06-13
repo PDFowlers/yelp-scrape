@@ -97,10 +97,6 @@ def page_info_grab(pages: list) -> dict:
         page_attributes['Address'] = page_soup.find('p', class_='css-qyp8bo').text
         reccommendation_info[title] = page_attributes
     return reccommendation_info
-        
-
-
-
 
 @click.command()
 @click.option('--cache', '-c', default = Path("./WebCache/"), type = click.Path(exists=False), help = "When provided, changes the location of the cache.")
