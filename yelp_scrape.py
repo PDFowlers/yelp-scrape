@@ -18,20 +18,13 @@ def cli():
     pass
 
 @dataclass (frozen=True)
-class DetailedInfo:
+class YelpInfo:
     '''class to store detailed yelp result info'''
-    rating: str     #business rating based on a 5 star scale
-    website: str    #specific business webpage
-    phone_number: str       #business phone number. stored as (123) 456-7890
-    address: str    #address for the business
-
-# @dataclass (frozen=True)
-# class YelpInfo:
-#     '''class to store each business and associated DetailedInfo'''
-#     name: str   #name of business
-#     DetailedInfo: dict[DetailedInfo]      #list dataclass that stores detailed business info
-
-
+    title: str      # name of business
+    rating: str     # business rating based on a 5 star scale
+    website: str    # specific business webpage
+    phone_number: str       # business phone number. stored as (123) 456-7890
+    address: str    # address for the business
 
 def url_generator(search_item: str, location: str) ->str:
     '''
@@ -87,13 +80,13 @@ def collect_webpages(soup: BeautifulSoup, search_item: str) -> set:
             break
     return biz_lst
 
-def page_info_grab(pages: list) -> dict:
+def page_info_grab(pages: list[str]) -> list[YelpInfo]:
     '''
     iterate through the pages list and pull relevant data from the associated yelp pages to place into reccommndation info
     :param list pages: list of urls from yelp
     '''
     base_url = 'https://yelp.com'
-    reccommendation_info = {}
+    reccommendation_info = []
     for page in pages:
         sleep(1)
         url = base_url + page
@@ -111,9 +104,8 @@ def page_info_grab(pages: list) -> dict:
             if re.search('\(\d{3}\)', p.text) is not None:
                 phone_number = p.text
         address = page_soup.find('p', class_='css-qyp8bo').text
-        page_attributes = DetailedInfo(rating, website, phone_number, address)
-        page_attributes = asdict(page_attributes)
-        reccommendation_info[title] = page_attributes
+        page_attributes = YelpInfo(title, rating, website, phone_number, address)
+        reccommendation_info.append(page_attributes)
     return reccommendation_info
         
 @click.command()
