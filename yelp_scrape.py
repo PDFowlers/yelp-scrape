@@ -5,6 +5,7 @@ from time import sleep
 import os
 from pathlib import Path
 import click
+import re
 
 # this project is aimed at searching yelp for various good and services and providing a "top 5" list of
 # recommendations to the user
@@ -87,8 +88,15 @@ def page_info_grab(pages: list) -> dict:
             if label.get('aria-label') is not None:
                 page_attributes['Rating'] = label['aria-label']
                 break
+        for a in page_soup.find_all('a'):
+            if a.string is not None and a.string.startswith('http'):
+                page_attributes['Website'] = a.string
+        for p in page_soup.find_all('p', class_='css-1p9ibgf'):
+            if re.search('\(\d{3}\)', p.text) is not None:
+                page_attributes['Phone Number'] = p.text
+        page_attributes['Address'] = page_soup.find('p', class_='css-qyp8bo').text
         reccommendation_info[title] = page_attributes
-    print(reccommendation_info)
+    return reccommendation_info
         
 
 
@@ -111,6 +119,7 @@ def yelp_scrape(search_item: str, location: str, cache: Path):
     for page in pages:
         print(page + '\n')
     reccommendation_info = page_info_grab(pages)
+    print(reccommendation_info)
 
 cli.add_command(yelp_scrape)
 
