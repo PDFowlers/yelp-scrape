@@ -22,9 +22,9 @@ class YelpInfo:
     '''class to store detailed yelp result info'''
     title: str      # name of business
     rating: str     # business rating based on a 5 star scale
-    website: str    # specific business webpage
-    phone_number: str       # business phone number. stored as (123) 456-7890
-    address: str    # address for the business
+    website: str   # specific business webpage
+    phone_number: str      # business phone number. stored as (123) 456-7890
+    address: str   # address for the business
 
 def url_generator(search_item: str, location: str) ->str:
     '''
@@ -93,20 +93,36 @@ def page_info_grab(pages: list[str]) -> list[YelpInfo]:
         page_req = requests.get(url)
         page_soup = BeautifulSoup(page_req.text, 'html.parser')
         title = page_soup.h1.text
-        for label in page_soup.find_all('div'):   
+        rating = 'This business has not been rated'
+        website = 'This business does not have a website listed on Yelp'
+        phone_number = 'This business does not have a phone number listed on Yelp'
+        address = 'This business does not have an address listed on Yelp'
+        for label in page_soup.find_all('div'): 
             if label.get('aria-label') is not None:
-                rating = label['aria-label']
-                break
+                if label['aria-label'][0].isnumeric():
+                    rating = label['aria-label']
+                    break
         for a in page_soup.find_all('a'):
             if a.string is not None and a.string.startswith('http'):
                 website = a.string
         for p in page_soup.find_all('p', class_='css-1p9ibgf'):
             if re.search('\(\d{3}\)', p.text) is not None:
                 phone_number = p.text
-        address = page_soup.find('p', class_='css-qyp8bo').text
+        if not page_soup.find_all('p', class_='css-qyp8bo')[-1].text.startswith('Verified'):
+            address = page_soup.find_all('p', class_='css-qyp8bo')[-1].text
         page_attributes = YelpInfo(title, rating, website, phone_number, address)
         reccommendation_info.append(page_attributes)
     return reccommendation_info
+
+def print_data(reccommendation_info: list[YelpInfo]):
+    for business in reccommendation_info:
+        print('---------------')
+        print(business.title)
+        print(business.rating)
+        print(business.website)
+        print(business.phone_number)
+        print(business.address)
+        print('---------------')
         
 @click.command()
 @click.option('--cache', '-c', default = Path("./WebCache/"), type = click.Path(exists=False), help = "When provided, changes the location of the cache.")
@@ -125,7 +141,7 @@ def yelp_scrape(search_item: str, location: str, cache: Path):
     for page in pages:
         print(page + '\n')
     reccommendation_info = page_info_grab(pages)
-    print(reccommendation_info)
+    print_data(reccommendation_info)
 
 cli.add_command(yelp_scrape)
 
