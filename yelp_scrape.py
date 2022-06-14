@@ -86,7 +86,7 @@ def page_info_grab(pages: list[str]) -> list[YelpInfo]:
     :param list pages: list of urls from yelp
     '''
     base_url = 'https://yelp.com'
-    reccommendation_info = []
+    recommendation_info = []
     for page in pages:
         sleep(1)
         url = base_url + page
@@ -111,8 +111,8 @@ def page_info_grab(pages: list[str]) -> list[YelpInfo]:
         if not page_soup.find_all('p', class_='css-qyp8bo')[-1].text.startswith('Verified'):
             address = page_soup.find_all('p', class_='css-qyp8bo')[-1].text
         page_attributes = YelpInfo(title, rating, website, phone_number, address)
-        reccommendation_info.append(page_attributes)
-    return reccommendation_info
+        recommendation_info.append(page_attributes)
+    return recommendation_info
 
 def print_data(reccommendation_info: list[YelpInfo]):
     for business in reccommendation_info:
@@ -140,8 +140,8 @@ def yelp_scrape(search_item: str, location: str, cache: Path):
     pages: set = collect_webpages(yelp_soup, search_item)
     for page in pages:
         print(page + '\n')
-    reccommendation_info = page_info_grab(pages)
-    print_data(reccommendation_info)
+    recommendation_info = page_info_grab(pages)
+    print_data(recommendation_info)
 
 cli.add_command(yelp_scrape)
 
